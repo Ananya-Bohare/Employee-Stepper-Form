@@ -149,9 +149,41 @@ const Form = ({ userId, employee, onClose, onSuccess }) => {
                 }
     
                 userIdToUse = authData.user.id;
+    
+                // Step 3: Insert a new row into the `profiles` table for the new user
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .insert([{
+                        id: userIdToUse,
+                        role: 'employee', // Default role for new users
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString(),
+                    }]);
+    
+                if (profileError) {
+                    console.error('Profile creation error:', profileError);
+                    toast.error('Failed to create user profile. Please try again.');
+                    return;
+                }
+    
+                console.log('Profile created successfully!');
+    
+                // Step 4: Restore the admin session
+                const { error: restoreError } = await supabase.auth.setSession({
+                    access_token: session.session.access_token,
+                    refresh_token: session.session.refresh_token,
+                });
+    
+                if (restoreError) {
+                    console.error('Error restoring session:', restoreError);
+                    toast.error('Failed to restore admin session. Please log in again.');
+                    return;
+                }
+    
+                console.log('Admin session restored successfully!');
             }
     
-            // Step 3: Insert employee data into the `employees` table
+            // Step 5: Insert employee data into the `employees` table
             const { error: employeeError } = await supabase
                 .from('employees')
                 .insert([{
@@ -190,8 +222,7 @@ const Form = ({ userId, employee, onClose, onSuccess }) => {
             console.log('Employee created successfully!');
             toast.success('Employee created successfully!');
             onClose();
-            onSuccess();
-            navigate('/admin'); // Redirect to admin dashboard
+            onSuccess(); // Call the onSuccess function to re-fetch employees
         } catch (error) {
             console.error('Unexpected error:', error);
             toast.error('Something went wrong. Please try again.');

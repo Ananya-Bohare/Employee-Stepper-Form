@@ -20,20 +20,20 @@ const AdminDashboard = () => {
         try {
             // Get the current session to retrieve the logged-in admin's ID
             const { data: session, error: sessionError } = await supabase.auth.getSession();
-    
+
             console.log("Session Data:", session);
             if (sessionError || !session.session) {
                 throw new Error('User not logged in');
             }
-    
+
             const adminId = session.session.user.id;
-    
+
             // Fetch employees created by the logged-in admin
             const { data, error } = await supabase
                 .from('employees')
                 .select('*')
                 .eq('created_by', adminId); // Filter by the logged-in admin's ID
-    
+
             if (error) {
                 console.error('Error fetching employees:', error);
             } else {
@@ -108,7 +108,7 @@ const AdminDashboard = () => {
                         userId={userIdForEmployee}
                         employee={selectedEmployee} // Pass the selected employee for editing
                         onClose={closeModal}
-                        onSuccess={fetchEmployees}
+                        onSuccess={fetchEmployees} // Pass fetchEmployees as onSuccess
                     />
                 </ProfileModal>
             )}
